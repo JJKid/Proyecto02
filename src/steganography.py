@@ -8,7 +8,6 @@ def convertDecimalToBinary(num):
     return '{0:08b}'.format(num)
 
 def convertBinaryToChar(binaryNum):
-    print(binaryNum, len(binaryNum), int(binaryNum,2))
     return chr(int(binaryNum,2))
 
 def convertBinaryToDecimal(num): 
@@ -18,27 +17,24 @@ def convertTextToBinary(text):
     # Convert each character in the string of text
     # to a binary string
     # Return all binary strings joined into one string
-    for c in text:
-        print(c, convertDecimalToBinary(ord(c)))
     if type(text) is str:
         return ''.join([convertDecimalToBinary(ord(c)) for c in text])
 
 def hideText():
-    imageFileName = input("Enter image file name \n")
-    # read image
     scriptDir = os.path.dirname(__file__)
+    imageFileName = input("Enter original image file name (with .png extension) \n")
     imagePath = os.path.join(scriptDir, '../data/', imageFileName)
     image = Image.open(imagePath) 
-    print(image.format, image.size, image.mode)
+    print("Image details: ", image.format, image.size, image.mode)
 
-    textFileName = input("Enter text file name \n")
+    textFileName = input("Enter text file name with text to hide (with .txt extension) \n")
     textFilePath = os.path.join(scriptDir, '../data/', textFileName)
-    with open(textFilePath, 'r') as file:
-        text = file.read().replace('\n', ' ')
-    # save text into string variable
-    print("Text file name", text)
+    with open(textFilePath, 'r') as textFile:
+        text = textFile.read().replace('\n', ' ')
+
+    outputImageFileName = input("Enter output image file name (with .png extension) \n")
+    
     textInBinary = convertTextToBinary(text) + '1111111111111110'
-    print("Text in binary", len(textInBinary), textInBinary)
     currDigitIndex = 0
     # PIL accesses images in Cartesian co-ordinates, so it is Image[columns, rows]
     pixelMap = image.load()
@@ -51,6 +47,7 @@ def hideText():
     print("r modified in binary" , rInbinaryModified)
     print("r back to decimal", convertBinaryToDecimal(rInBinary))
     print("r modified back to decimal", convertBinaryToDecimal(rInbinaryModified))
+
     listofbinaries = []
     for i in range(image.size[0]):
         for j in range(image.size[1]):  
@@ -60,20 +57,19 @@ def hideText():
                 r = convertBinaryToDecimal(rInbinaryModified)
                 currDigitIndex+=1
             if currDigitIndex < len(textInBinary):
-                bInbinaryModified = convertDecimalToBinary(b)[:-1] + textInBinary[currDigitIndex]
-                b = convertBinaryToDecimal(bInbinaryModified)
-                currDigitIndex+=1
-            if currDigitIndex < len(textInBinary):
                 gInbinaryModified = convertDecimalToBinary(g)[:-1] + textInBinary[currDigitIndex]
                 g = convertBinaryToDecimal(gInbinaryModified)
                 currDigitIndex+=1
+            if currDigitIndex < len(textInBinary):
+                bInbinaryModified = convertDecimalToBinary(b)[:-1] + textInBinary[currDigitIndex]
+                b = convertBinaryToDecimal(bInbinaryModified)
+                currDigitIndex+=1            
             if currDigitIndex < len(textInBinary):
                 aInbinaryModified = convertDecimalToBinary(a)[:-1] + textInBinary[currDigitIndex]
                 a = convertBinaryToDecimal(aInbinaryModified)
                 currDigitIndex+=1
             listofbinaries.append((rInbinaryModified, bInbinaryModified, gInbinaryModified, aInbinaryModified))
             pixelMap[i,j] = (r,g,b,a)
-            print(currDigitIndex)
             if currDigitIndex == len(textInBinary):
                 print(" Break Ultimo indice", currDigitIndex, i,j)
                 break  
@@ -82,11 +78,7 @@ def hideText():
             continue  
         break    
     
-    sequence_of_pixels = image.getdata()
-    list_of_pixels = list(sequence_of_pixels)
-    print(listofbinaries)
-    print("mensaje en binario", textInBinary)
-    outputImagePath = os.path.join(scriptDir, '../data/', "modifiedImage.png")
+    outputImagePath = os.path.join(scriptDir, '../out/', outputImageFileName)
     image.save(outputImagePath)
     image.show()
     
@@ -101,30 +93,26 @@ def unveilText():
     # we convert it into its char representation and append it to unveiledText string
     
     # We save the unveiledText string to an output text file 
-    imageFileName = input("Enter image file name with hidden text\n")
     scriptDir = os.path.dirname(__file__)
-    imagePath = os.path.join(scriptDir, '../data/', imageFileName)
+
+    imageFileName = input("Enter image file name with hidden text (with .png extension) \n")
+    imagePath = os.path.join(scriptDir, '../out/', imageFileName)
     image = Image.open(imagePath) 
-    print(image.format, image.size, image.mode)
-    textFileName = input("Enter text file name \n")
-    print(textFileName)
-    pixelMap = image.load()
+    print("Image details: ", image.format, image.size, image.mode)
 
-    sequence_of_pixels = image.getdata()
-    list_of_pixels = list(sequence_of_pixels)
+    outputTextFileName = input("Enter output text file name (with .txt extension) \n")
 
+    listofbinaries = []
     currExtractingBinaryString = ''
     delimiter = '1111111111111110'
     unveiledText = ''
     for i in range(image.size[0]):
         for j in range(image.size[1]):
             r, g, b, a = image.getpixel((i, j))
-            print((convertDecimalToBinary(r),convertDecimalToBinary(g),convertDecimalToBinary(b),convertDecimalToBinary(a)))
             currExtractingBinaryString+= convertDecimalToBinary(r)[-1]
             currExtractingBinaryString+= convertDecimalToBinary(g)[-1]
             currExtractingBinaryString+= convertDecimalToBinary(b)[-1]
             currExtractingBinaryString+= convertDecimalToBinary(a)[-1]
-            print((convertDecimalToBinary(r)[-1],convertDecimalToBinary(g)[-1],convertDecimalToBinary(b)[-1],convertDecimalToBinary(a)[-1]))
             if len(currExtractingBinaryString) >= len(delimiter):
                 if currExtractingBinaryString[-16:] == delimiter:
                     print("Delimiter found", len(currExtractingBinaryString) , currExtractingBinaryString)
@@ -133,24 +121,26 @@ def unveilText():
             # Continue to next i iteration if inner for loop finish 
             continue  
         break  
-
-    print("Binary extracted text", currExtractingBinaryString, len(currExtractingBinaryString) )
     if len(currExtractingBinaryString) % 8 == 0:
         for i in range(0,len(currExtractingBinaryString),8):
             unveiledText+= convertBinaryToChar(currExtractingBinaryString[i: i+8])
     else:
         print("Extracted string is not multiple of 8")    
     
-    print("Unveiled text", unveiledText[:-2])
+    print("Unveiled text: ", unveiledText[:-2])
+    outputTextFilePath = os.path.join(scriptDir, '../out/', outputTextFileName)
+    print("Saved on file " + outputTextFileName)
+
+
+    with open(outputTextFilePath, "w") as textFile:
+        textFile.write(unveiledText[:-2])
 
 def main():
-    optionSelected = input("Seleccione la opcion deseada \n h para ocultar \n u para develar \n")
+    optionSelected = input("Enter \n h to hide \n u to unveil \n")
     if optionSelected == "h":
         hideText()
     if optionSelected == "u":
         unveilText()
-    
-
 
 if __name__ == "__main__":
     main()
