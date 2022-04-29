@@ -97,8 +97,12 @@ def hideText():
         else:
             continue  
         break    
-    
-    outputImagePath = os.path.join(scriptDir, '../out/', outputImageFileName)
+    outDirectoryPath = os.path.join(scriptDir, "../out/")
+    if not os.path.isdir(outDirectoryPath):
+        os.mkdir(outDirectoryPath)
+        print("Created /out directory")
+
+    outputImagePath = os.path.join(outDirectoryPath, outputImageFileName)
     image.save(outputImagePath)    
     print("Modified image saved on " + outputImagePath)
     
