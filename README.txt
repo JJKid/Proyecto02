@@ -18,3 +18,7 @@ nombres de archivos indicada en cada paso
 Los archivos de entrada (imagen original y texto a ocultar) estan en la carpeta /data
 y los archivos de salida se guardan en la carpeta /out
 
+NOTA: La carpeta /out se crea al momento de crear la imagen de salida con el mensaje oculto
+en caso de que no exista la carpeta
+
+
